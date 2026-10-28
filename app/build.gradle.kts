@@ -53,14 +53,13 @@ android {
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_21)
+        freeCompilerArgs.add("-Xskip-metadata-version-check")
     }
 }
 
 dependencies {
-    // Miuix UI Library (https://github.com/compose-miuix-ui/miuix)
-    implementation("top.yukonga.miuix.kmp:miuix-ui:0.9.4")
-    implementation("top.yukonga.miuix.kmp:miuix-preference:0.9.4")
-    implementation("top.yukonga.miuix.kmp:miuix-icons:0.9.4")
+    // Official Miuix UI Library (https://github.com/compose-miuix-ui/miuix)
+    implementation("top.yukonga.miuix.kmp:miuix:0.4.2")
 
     // Compose & AndroidX Core
     implementation("androidx.core:core-ktx:1.15.0")

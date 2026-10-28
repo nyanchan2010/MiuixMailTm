@@ -16,8 +16,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -37,9 +39,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import app.privacy.miuixmailtm.data.MailTmRepository
@@ -49,14 +50,12 @@ import app.privacy.miuixmailtm.util.ClipboardHelper
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Card
-import top.yukonga.miuix.kmp.basic.HorizontalDivider
-import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TopAppBar
-import top.yukonga.miuix.kmp.preference.SwitchPreference
+import top.yukonga.miuix.kmp.extra.SuperSwitch
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.darkColorScheme
 import top.yukonga.miuix.kmp.theme.lightColorScheme
@@ -145,13 +144,23 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
+private fun SubtleDivider() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .height(0.5.dp)
+            .background(Color.Gray.copy(alpha = 0.25f))
+    )
+}
+
+@Composable
 fun MailTmMiuixScreen(
     onRequestBatteryExemption: () -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val state by MailTmRepository.state.collectAsState()
-    val scrollBehavior = MiuixScrollBehavior()
     var expandedMessageId by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(state.lastCopyToast) {
@@ -162,16 +171,11 @@ fun MailTmMiuixScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = "Miuix Mail.tm",
-                scrollBehavior = scrollBehavior
-            )
+            TopAppBar(title = "Miuix Mail.tm")
         }
     ) { innerPadding ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .nestedScroll(scrollBehavior.nestedScrollConnection),
+            modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 top = innerPadding.calculateTopPadding() + 8.dp,
                 bottom = innerPadding.calculateBottomPadding() + 24.dp
@@ -196,7 +200,7 @@ fun MailTmMiuixScreen(
                             ).show()
                         }
                     )
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    SubtleDivider()
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -237,7 +241,6 @@ fun MailTmMiuixScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
-                    val otpText = state.latestOtp ?: "Waiting for incoming verification code..."
                     BasicComponent(
                         title = if (state.latestOtp != null) "OTP: ${state.latestOtp}" else "No OTP Received Yet",
                         summary = if (state.latestOtp != null) {
@@ -262,27 +265,27 @@ fun MailTmMiuixScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
-                    SwitchPreference(
+                    SuperSwitch(
                         title = "Auto-Copy Email Address",
                         summary = "Automatically copy new email on app launch & rotation",
                         checked = state.autoCopyMail,
                         onCheckedChange = { MailTmRepository.setAutoCopyMail(it) }
                     )
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                    SwitchPreference(
+                    SubtleDivider()
+                    SuperSwitch(
                         title = "Auto-Copy Incoming OTP",
                         summary = "Extract & copy 4–8 digit OTP codes in the background",
                         checked = state.autoCopyOtp,
                         onCheckedChange = { MailTmRepository.setAutoCopyOtp(it) }
                     )
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                    SwitchPreference(
+                    SubtleDivider()
+                    SuperSwitch(
                         title = "FLAG_SECURE Privacy Shield",
                         summary = "Block screenshots and hide inbox from Recents preview",
                         checked = state.secureScreen,
                         onCheckedChange = { MailTmRepository.setSecureScreen(it) }
                     )
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    SubtleDivider()
                     BasicComponent(
                         title = "Unrestricted Background Speed",
                         summary = "Tap to exempt from HyperOS / Android battery throttling",
@@ -347,7 +350,7 @@ private fun MessageItemCard(
             onClick = onToggleExpand
         )
         if (isExpanded) {
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+            SubtleDivider()
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -355,7 +358,6 @@ private fun MessageItemCard(
             ) {
                 Text(
                     text = message.text ?: message.intro,
-                    style = MiuixTheme.textStyles.body2,
                     color = MiuixTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(10.dp))
