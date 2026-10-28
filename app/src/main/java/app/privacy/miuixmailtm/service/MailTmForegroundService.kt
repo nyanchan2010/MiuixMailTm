@@ -32,7 +32,6 @@ class MailTmForegroundService : LifecycleService() {
         acquirePartialWakeLock()
         startForegroundCompat(buildPersistentNotification("Starting ephemeral inbox...", null))
 
-        // Subscribe to state updates so persistent notification always displays current email + latest OTP
         lifecycleScope.launch {
             MailTmRepository.state.collectLatest { state ->
                 val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -58,8 +57,17 @@ class MailTmForegroundService : LifecycleService() {
                 }
             }
             ACTION_STOP_SERVICE -> {
-                stopForeground(STOP_FOREGROUND_REMOVE)
-                stopSelf()
+                lifecycleScope.launch {
+                    try {
+                        MailTmRepository.shutdownAndClear(applicationContext)
+                    } catch (_: Exception) {}
+                    
+                    stopForeground(STOP_FOREGROUND_REMOVE)
+                    stopSelf()
+                    
+                    // Forcefully terminate process like App Settings "Force Stop"
+                    android.os.Process.killProcess(android.os.Process.myPid())
+                }
                 return START_NOT_STICKY
             }
         }
@@ -78,7 +86,7 @@ class MailTmForegroundService : LifecycleService() {
                         fireNewMessageNotification(msg.from.address, msg.subject)
                     }
                 }
-                delay(2500L) // Ultra-fast 2.5s background check
+                delay(2500L)
             }
         }
     }
@@ -200,8 +208,7 @@ class MailTmForegroundService : LifecycleService() {
                 putExtra(ClipboardTrampolineActivity.EXTRA_VALUE, value)
             }
             startActivity(intent)
-        } catch (_: Exception) {
-        }
+        } catch (_: Exception) {}
     }
 
     private fun startForegroundCompat(notification: Notification) {

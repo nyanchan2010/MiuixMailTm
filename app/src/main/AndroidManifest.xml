@@ -28,7 +28,6 @@
             </intent-filter>
         </activity>
 
-        <!-- Transparent 1ms trampoline activity to guarantee clipboard write on Android 10+ from background notification -->
         <activity
             android:name=".ClipboardTrampolineActivity"
             android:exported="false"

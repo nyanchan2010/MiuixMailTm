@@ -51,7 +51,6 @@ object MailTmRepository {
         isLenient = true
     }
 
-    // Shared HTTP/2 keep-alive client for ultra-low latency polling
     private val httpClient = OkHttpClient.Builder()
         .connectionPool(ConnectionPool(5, 5, TimeUnit.MINUTES))
         .connectTimeout(8, TimeUnit.SECONDS)
@@ -78,6 +77,23 @@ object MailTmRepository {
         }
     }
 
+    suspend fun shutdownAndClear(context: Context) = mutex.withLock {
+        withContext(Dispatchers.IO) {
+            val oldId = _state.value.accountId
+            val oldToken = _state.value.bearerToken
+            if (oldId != null && oldToken != null) {
+                deleteAccountQuietly(oldId, oldToken)
+            }
+            processedMessageIds.clear()
+            _state.value = MailUiState(
+                currentEmail = "App stopped",
+                statusLine = "Session terminated",
+                isProvisioning = false
+            )
+            hasInitializedRun = false
+        }
+    }
+
     fun setAutoCopyMail(enabled: Boolean) {
         _state.update { it.copy(autoCopyMail = enabled) }
     }
@@ -96,7 +112,6 @@ object MailTmRepository {
     ): String? = mutex.withLock {
         withContext(Dispatchers.IO) {
             try {
-                // Shred previous account in background if one existed
                 val oldId = _state.value.accountId
                 val oldToken = _state.value.bearerToken
                 if (oldId != null && oldToken != null) {
@@ -129,7 +144,6 @@ object MailTmRepository {
                 val password = generateRandomString(24)
                 val emailAddress = "$username@$chosenDomain"
 
-                // 1. Create account
                 val credentialsJson = json.encodeToString(
                     AccountCredentials(address = emailAddress, password = password)
                 )
@@ -145,7 +159,6 @@ object MailTmRepository {
                     }
                 }
 
-                // 2. Obtain Bearer JWT token
                 val tokenReq = Request.Builder()
                     .url("$BASE_URL/token")
                     .post(credentialsJson.toRequestBody(JSON_MEDIA))
@@ -192,10 +205,6 @@ object MailTmRepository {
         }
     }
 
-    /**
-     * Polls /messages and fetches full details for any new message.
-     * Returns a pair of (NewMessageDetail, ExtractedOtp?) if a brand-new message arrived.
-     */
     suspend fun pollMessagesOnce(
         context: Context
     ): List<Pair<MessageDetail, String?>> = withContext(Dispatchers.IO) {
@@ -266,9 +275,7 @@ object MailTmRepository {
                     )
                 }
             }
-        } catch (_: Exception) {
-            // Silent background resilience
-        }
+        } catch (_: Exception) {}
 
         return@withContext newlyArrived
     }
@@ -303,8 +310,7 @@ object MailTmRepository {
                 .delete()
                 .build()
             httpClient.newCall(req).execute().close()
-        } catch (_: Exception) {
-        }
+        } catch (_: Exception) {}
     }
 
     private fun generateRandomString(length: Int): String {

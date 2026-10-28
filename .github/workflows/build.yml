@@ -27,7 +27,7 @@ jobs:
       - name: Setup Gradle 8.11.1
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.11.1'
+            gradle-version: '8.11.1'
 
       - name: Build Debug & Release APKs
         run: gradle assembleDebug assembleRelease --stacktrace

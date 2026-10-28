@@ -58,18 +58,13 @@ kotlin {
 }
 
 dependencies {
-    // Official Miuix UI Library (https://github.com/compose-miuix-ui/miuix)
     implementation("top.yukonga.miuix.kmp:miuix:0.4.2")
-
-    // Compose & AndroidX Core
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.lifecycle:lifecycle-service:2.8.7")
     implementation("androidx.activity:activity-compose:1.10.0")
     implementation("androidx.compose.foundation:foundation:1.7.8")
     implementation("androidx.compose.ui:ui:1.7.8")
-
-    // Fast Networking & Zero-Reflection JSON Serialization
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.1")

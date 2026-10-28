@@ -5,11 +5,6 @@ import android.os.Bundle
 import android.widget.Toast
 import app.privacy.miuixmailtm.util.ClipboardHelper
 
-/**
- * Transparent 1ms foreground trampoline activity invoked from notifications or quick actions
- * so Android 10+ always permits writing the OTP/Email to the system clipboard even when
- * the user is inside another app.
- */
 class ClipboardTrampolineActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

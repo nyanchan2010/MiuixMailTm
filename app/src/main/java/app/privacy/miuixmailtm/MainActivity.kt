@@ -72,7 +72,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Every fresh app process run automatically creates a brand-new mail.tm account & copies it
         MailTmRepository.ensureNewRunIdentity(applicationContext)
         requestNotificationPermissionAndStartService()
 
@@ -138,8 +137,7 @@ class MainActivity : ComponentActivity() {
                     Toast.LENGTH_SHORT
                 ).show()
             }
-        } catch (_: Exception) {
-        }
+        } catch (_: Exception) {}
     }
 }
 
